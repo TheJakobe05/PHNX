@@ -8,8 +8,9 @@ public class GUI {
 	JFrame window;
 	JTextArea textArea;
 	JScrollPane scrollPane;
-	
+
 	String appName = "PHNX";
+	String appVersion = "0.1.0";
 
 	public static void main(String[] args) {
 
