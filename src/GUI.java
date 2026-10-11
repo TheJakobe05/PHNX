@@ -9,20 +9,32 @@ import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+import javax.swing.event.UndoableEditEvent;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.undo.UndoManager;
 
 public class GUI implements ActionListener {
 	
 	JFrame window;
+	
+//	Text Area
 	JTextArea textArea;
 	JScrollPane scrollPane;
+//	Menu Bar
 	JMenuBar menuBar;
 	JMenu menuFile, menuEdit, menuFormat, menuColor;
+//	File Menu
 	JMenuItem iNew, iOpen, iSave, iSaveAs, iExit;
-	
+//	Edit Menu
+	JMenuItem iUndo, iRedo, iCut, iCopy, iPaste, iDelete, iSelectAll;
+
 	Function_File file = new Function_File(this);
+	Function_Edit edit = new Function_Edit(this);
+	
+	UndoManager um = new UndoManager();
 
 	String appName = "PHNX";
-	String appVersion = "v0.2.0 (alpha)";
+	String appVersion = "v0.3.0 (alpha)";
 	String defaultAppTitle = appName + " " + appVersion;
 	int WIDTH = 800;
 	int HEIGHT = 600;
@@ -47,6 +59,7 @@ public class GUI implements ActionListener {
 		createMenuBar();
 		
 		createFileMenu();
+		createEditMenu();
 		
 		window.setVisible(true);
 	}
@@ -65,6 +78,14 @@ public class GUI implements ActionListener {
 		textArea = new JTextArea();
 		textArea.setTabSize(5);
 		
+		textArea.getDocument().addUndoableEditListener(
+			new UndoableEditListener() {
+				public void undoableEditHappened(UndoableEditEvent e) {
+					um.addEdit(e.getEdit());
+				}
+			}
+		);
+		
 		scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		
@@ -81,8 +102,8 @@ public class GUI implements ActionListener {
 		menuFile = new JMenu("File");
 		menuBar.add(menuFile);
 		
-//		menuEdit = new JMenu("Edit");
-//		menuBar.add(menuEdit);
+		menuEdit = new JMenu("Edit");
+		menuBar.add(menuEdit);
 //		
 //		menuFormat = new JMenu("Format");
 //		menuBar.add(menuFormat);
@@ -120,6 +141,47 @@ public class GUI implements ActionListener {
 		iExit.setActionCommand("Exit");
 		menuFile.add(iExit);
 	}
+	
+	public void createEditMenu() {
+		iUndo = new JMenuItem("Undo");
+		iUndo.addActionListener(this);
+		iUndo.setActionCommand("Undo");
+		menuEdit.add(iUndo);
+		
+		iRedo = new JMenuItem("Redo");
+		iRedo.addActionListener(this);
+		iRedo.setActionCommand("Redo");
+		menuEdit.add(iRedo);
+		
+		menuEdit.addSeparator();
+		
+		iCut = new JMenuItem("Cut");
+		iCut.addActionListener(this);
+		iCut.setActionCommand("Cut");
+		menuEdit.add(iCut);
+		
+		iCopy = new JMenuItem("Copy");
+		iCopy.addActionListener(this);
+		iCopy.setActionCommand("Copy");
+		menuEdit.add(iCopy);
+		
+		iPaste = new JMenuItem("Paste");
+		iPaste.addActionListener(this);
+		iPaste.setActionCommand("Paste");
+		menuEdit.add(iPaste);
+
+		iDelete = new JMenuItem("Delete");
+		iDelete.addActionListener(this);
+		iDelete.setActionCommand("Delete");
+		menuEdit.add(iDelete);
+		
+		menuEdit.addSeparator();
+		
+		iSelectAll = new JMenuItem("Select All");
+		iSelectAll.addActionListener(this);
+		iSelectAll.setActionCommand("SelectAll");
+		menuEdit.add(iSelectAll);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -132,6 +194,13 @@ public class GUI implements ActionListener {
 		case "Save": file.save(); break;
 		case "SaveAs": file.saveAs(); break;
 		case "Exit": file.exit(); break;
+		case "Undo": edit.undo(); break;
+		case "Redo": edit.redo(); break;
+		case "Cut": edit.cut(); break;
+		case "Copy": edit.copy(); break;
+		case "Paste": edit.paste(); break;
+		case "Delete": edit.delete(); break;
+		case "SelectAll": edit.selectAll(); break;
 		}
 	}
 	
