@@ -1,20 +1,28 @@
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.UndoableEditEvent;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.undo.UndoManager;
 
 public class GUI implements ActionListener {
 	
+	protected static final Component ConfirmExitFrame = null;
+
 	JFrame window;
 	
 //	Text Area
@@ -24,7 +32,7 @@ public class GUI implements ActionListener {
 	JMenuBar menuBar;
 	JMenu menuFile, menuEdit, menuFormat, menuColor;
 //	File Menu
-	JMenuItem iNew, iOpen, iSave, iSaveAs, iExit;
+	JMenuItem iNew, iNewWindow, iCloseWindow, iOpen, iSave, iSaveAs, iExit;
 //	Edit Menu
 	JMenuItem iUndo, iRedo, iCut, iCopy, iPaste, iDelete, iSelectAll;
 
@@ -34,10 +42,12 @@ public class GUI implements ActionListener {
 	UndoManager um = new UndoManager();
 
 	String appName = "PHNX";
-	String appVersion = "v0.3.0 (alpha)";
+	String appVersion = "v0.4.0 (alpha)";
 	String defaultAppTitle = appName + " " + appVersion;
 	int WIDTH = 800;
 	int HEIGHT = 600;
+	
+	boolean fileSaved = true;
 
 	public static void main(String[] args) {
 
@@ -69,7 +79,30 @@ public class GUI implements ActionListener {
 		window = new JFrame(defaultAppTitle + " - Untitled");
 		window.setSize(WIDTH, HEIGHT);
 		window.setLocationRelativeTo(null);
-		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+		window.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+            	if(fileSaved == false) {
+
+                    int result = JOptionPane.showConfirmDialog(
+                        ConfirmExitFrame,
+                        "Are you sure you want to exit with unsaved changes?",
+                        "Exit Confirmation",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.WARNING_MESSAGE
+                    );
+
+                    if (result == JOptionPane.YES_OPTION) {
+                        window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+                        window.dispose();
+                    }
+            	} else {
+            		window.dispose();
+            	}
+            }
+        });
 		
 	}	
 	
@@ -85,6 +118,34 @@ public class GUI implements ActionListener {
 				}
 			}
 		);
+		
+		textArea.getDocument().addDocumentListener(new DocumentListener() {
+		    @Override
+		    public void insertUpdate(DocumentEvent e) {
+		        // Triggered when text is added/pasted
+		    	updateSaveState();
+		    }
+
+		    @Override
+		    public void removeUpdate(DocumentEvent e) {
+		        // Triggered when text is deleted/backspaced
+		    	updateSaveState();
+		    }
+
+		    @Override
+		    public void changedUpdate(DocumentEvent e) {
+		        // Triggered rare attribute changes, can usually be ignored for plain text
+		    }
+
+		    private void updateSaveState() {
+		        if(fileSaved == true) {
+		        	fileSaved = false;
+		        	window.setTitle(window.getTitle() + "*");
+		        } else {
+		        	return;
+		        }
+		    }
+		});
 		
 		scrollPane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -114,7 +175,7 @@ public class GUI implements ActionListener {
 	}
 	
 	public void createFileMenu() {
-		iNew = new JMenuItem("New");
+		iNew = new JMenuItem("New File");
 		iNew.addActionListener(this);
 		iNew.setActionCommand("New");
 		menuFile.add(iNew);
@@ -134,6 +195,18 @@ public class GUI implements ActionListener {
 		iSaveAs.setActionCommand("SaveAs");
 		menuFile.add(iSaveAs);
 		
+		menuFile.addSeparator();
+
+		iNewWindow = new JMenuItem("New Window");
+		iNewWindow.addActionListener(this);
+		iNewWindow.setActionCommand("NewWindow");
+		menuFile.add(iNewWindow);
+
+		iCloseWindow = new JMenuItem("Close Window");
+		iCloseWindow.addActionListener(this);
+		iCloseWindow.setActionCommand("CloseWindow");
+		menuFile.add(iCloseWindow);
+
 		menuFile.addSeparator();
 		
 		iExit = new JMenuItem("Exit");
@@ -190,6 +263,8 @@ public class GUI implements ActionListener {
 		
 		switch(command) {
 		case "New": file.newFile(); break;
+		case "NewWindow": file.newWindow(); break;
+		case "CloseWindow": file.closeWindow(); break;
 		case "Open": file.open(); break;
 		case "Save": file.save(); break;
 		case "SaveAs": file.saveAs(); break;
