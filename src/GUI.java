@@ -1,10 +1,14 @@
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -30,19 +34,28 @@ public class GUI implements ActionListener {
 	JScrollPane scrollPane;
 //	Menu Bar
 	JMenuBar menuBar;
-	JMenu menuFile, menuEdit, menuFormat, menuColor;
+	JMenu menuFile, menuEdit, menuView, menuPreferences;
 //	File Menu
 	JMenuItem iNew, iNewWindow, iCloseWindow, iOpen, iSave, iSaveAs, iExit;
 //	Edit Menu
 	JMenuItem iUndo, iRedo, iCut, iCopy, iPaste, iDelete, iSelectAll;
+//	View Menu
+	JCheckBoxMenuItem iWordWrap;
+//	Preferences Menu
+//	JMenu menuTheme;
+//	JMenuItem iLightTheme, iDarkTheme;
+	JMenu menuFont;
+	JMenuItem iFontChoose, iFontSmaller, iFontLarger, iFontReset;
 
 	Function_File file = new Function_File(this);
 	Function_Edit edit = new Function_Edit(this);
+	Function_View view = new Function_View(this);
+	Function_Preferences pref = new Function_Preferences(this);
 	
 	UndoManager um = new UndoManager();
 
 	String appName = "PHNX";
-	String appVersion = "v0.4.0 (alpha)";
+	String appVersion = "v0.5.0 (alpha)";
 	String defaultAppTitle = appName + " " + appVersion;
 	int WIDTH = 800;
 	int HEIGHT = 600;
@@ -70,6 +83,8 @@ public class GUI implements ActionListener {
 		
 		createFileMenu();
 		createEditMenu();
+		createViewMenu();
+		createPreferencesMenu();
 		
 		window.setVisible(true);
 	}
@@ -80,6 +95,9 @@ public class GUI implements ActionListener {
 		window.setSize(WIDTH, HEIGHT);
 		window.setLocationRelativeTo(null);
 		window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+		ImageIcon appIcon = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
+		window.setIconImage(appIcon.getImage());
 		
 		window.addWindowListener(new WindowAdapter() {
             @Override
@@ -110,6 +128,8 @@ public class GUI implements ActionListener {
 		
 		textArea = new JTextArea();
 		textArea.setTabSize(5);
+		Font myFont = new Font(pref.font, Font.PLAIN, pref.fontSize);
+		textArea.setFont(myFont);
 		
 		textArea.getDocument().addUndoableEditListener(
 			new UndoableEditListener() {
@@ -165,32 +185,48 @@ public class GUI implements ActionListener {
 		
 		menuEdit = new JMenu("Edit");
 		menuBar.add(menuEdit);
-//		
-//		menuFormat = new JMenu("Format");
-//		menuBar.add(menuFormat);
-//		
-//		menuColor = new JMenu("Color");
-//		menuBar.add(menuColor);
+
+		menuView = new JMenu("View");
+		menuBar.add(menuView);
+		
+		menuPreferences = new JMenu("Preferences");
+		menuBar.add(menuPreferences);
 		
 	}
 	
 	public void createFileMenu() {
+		ImageIcon newFileIcon = new ImageIcon(getClass().getClassLoader().getResource("newfile.png"));
+		ImageIcon openFileIcon = new ImageIcon(getClass().getClassLoader().getResource("openfile.png"));
+		ImageIcon saveIcon = new ImageIcon(getClass().getClassLoader().getResource("save.png"));
+		ImageIcon saveAsIcon = new ImageIcon(getClass().getClassLoader().getResource("saveas.png"));
+		ImageIcon newWindowIcon = new ImageIcon(getClass().getClassLoader().getResource("newwindow.png"));
+		ImageIcon closeWindowIcon = new ImageIcon(getClass().getClassLoader().getResource("closewindow.png"));
+		ImageIcon exitIcon = new ImageIcon(getClass().getClassLoader().getResource("exit.png"));
+		
 		iNew = new JMenuItem("New File");
+		iNew.setIcon(newFileIcon);
+		iNew.setMargin(new Insets(2, -20, 2, 2));
 		iNew.addActionListener(this);
 		iNew.setActionCommand("New");
 		menuFile.add(iNew);
 		
 		iOpen = new JMenuItem("Open");
+		iOpen.setIcon(openFileIcon);
+		iOpen.setMargin(new Insets(2, -20, 2, 2));
 		iOpen.addActionListener(this);
 		iOpen.setActionCommand("Open");
 		menuFile.add(iOpen);
 		
 		iSave = new JMenuItem("Save");
+		iSave.setIcon(saveIcon);
+		iSave.setMargin(new Insets(2, -20, 2, 2));
 		iSave.addActionListener(this);
 		iSave.setActionCommand("Save");
 		menuFile.add(iSave);
 		
 		iSaveAs = new JMenuItem("Save As");
+		iSaveAs.setIcon(saveAsIcon);
+		iSaveAs.setMargin(new Insets(2, -20, 2, 2));
 		iSaveAs.addActionListener(this);
 		iSaveAs.setActionCommand("SaveAs");
 		menuFile.add(iSaveAs);
@@ -198,11 +234,15 @@ public class GUI implements ActionListener {
 		menuFile.addSeparator();
 
 		iNewWindow = new JMenuItem("New Window");
+		iNewWindow.setIcon(newWindowIcon);
+		iNewWindow.setMargin(new Insets(2, -20, 2, 2));
 		iNewWindow.addActionListener(this);
 		iNewWindow.setActionCommand("NewWindow");
 		menuFile.add(iNewWindow);
 
 		iCloseWindow = new JMenuItem("Close Window");
+		iCloseWindow.setIcon(closeWindowIcon);
+		iCloseWindow.setMargin(new Insets(2, -20, 2, 2));
 		iCloseWindow.addActionListener(this);
 		iCloseWindow.setActionCommand("CloseWindow");
 		menuFile.add(iCloseWindow);
@@ -210,18 +250,32 @@ public class GUI implements ActionListener {
 		menuFile.addSeparator();
 		
 		iExit = new JMenuItem("Exit");
+		iExit.setIcon(exitIcon);
+		iExit.setMargin(new Insets(2, -20, 2, 2));
 		iExit.addActionListener(this);
 		iExit.setActionCommand("Exit");
 		menuFile.add(iExit);
 	}
 	
 	public void createEditMenu() {
+		ImageIcon undoIcon = new ImageIcon(getClass().getClassLoader().getResource("undo.png"));
+		ImageIcon redoIcon = new ImageIcon(getClass().getClassLoader().getResource("redo.png"));
+		ImageIcon cutIcon = new ImageIcon(getClass().getClassLoader().getResource("cut.png"));
+		ImageIcon copyIcon = new ImageIcon(getClass().getClassLoader().getResource("copy.png"));
+		ImageIcon pasteIcon = new ImageIcon(getClass().getClassLoader().getResource("paste.png"));
+		ImageIcon deleteIcon = new ImageIcon(getClass().getClassLoader().getResource("delete.png"));
+		ImageIcon selectAllIcon = new ImageIcon(getClass().getClassLoader().getResource("selectall.png"));
+		
 		iUndo = new JMenuItem("Undo");
+		iUndo.setIcon(undoIcon);
+		iUndo.setMargin(new Insets(2, -20, 2, 2));
 		iUndo.addActionListener(this);
 		iUndo.setActionCommand("Undo");
 		menuEdit.add(iUndo);
 		
 		iRedo = new JMenuItem("Redo");
+		iRedo.setIcon(redoIcon);
+		iRedo.setMargin(new Insets(2, -20, 2, 2));
 		iRedo.addActionListener(this);
 		iRedo.setActionCommand("Redo");
 		menuEdit.add(iRedo);
@@ -229,21 +283,29 @@ public class GUI implements ActionListener {
 		menuEdit.addSeparator();
 		
 		iCut = new JMenuItem("Cut");
+		iCut.setIcon(cutIcon);
+		iCut.setMargin(new Insets(2, -20, 2, 2));
 		iCut.addActionListener(this);
 		iCut.setActionCommand("Cut");
 		menuEdit.add(iCut);
 		
 		iCopy = new JMenuItem("Copy");
+		iCopy.setIcon(copyIcon);
+		iCopy.setMargin(new Insets(2, -20, 2, 2));
 		iCopy.addActionListener(this);
 		iCopy.setActionCommand("Copy");
 		menuEdit.add(iCopy);
 		
 		iPaste = new JMenuItem("Paste");
+		iPaste.setIcon(pasteIcon);
+		iPaste.setMargin(new Insets(2, -20, 2, 2));
 		iPaste.addActionListener(this);
 		iPaste.setActionCommand("Paste");
 		menuEdit.add(iPaste);
 
 		iDelete = new JMenuItem("Delete");
+		iDelete.setIcon(deleteIcon);
+		iDelete.setMargin(new Insets(2, -20, 2, 2));
 		iDelete.addActionListener(this);
 		iDelete.setActionCommand("Delete");
 		menuEdit.add(iDelete);
@@ -251,9 +313,54 @@ public class GUI implements ActionListener {
 		menuEdit.addSeparator();
 		
 		iSelectAll = new JMenuItem("Select All");
+		iSelectAll.setIcon(selectAllIcon);
+		iSelectAll.setMargin(new Insets(2, -20, 2, 2));
 		iSelectAll.addActionListener(this);
 		iSelectAll.setActionCommand("SelectAll");
 		menuEdit.add(iSelectAll);
+	}
+	
+	public void createViewMenu() {
+		
+		iWordWrap = new JCheckBoxMenuItem("Word Wrap");
+		iWordWrap.addActionListener(this);
+		iWordWrap.setActionCommand("WordWrap");
+		menuView.add(iWordWrap);
+		
+	}
+	
+	public void createPreferencesMenu() {
+		
+		menuFont = new JMenu("Font");
+		menuFont.setMargin(new Insets(2, -20, 2, 2));
+		menuPreferences.add(menuFont);
+
+		iFontChoose = new JMenuItem("Choose...");
+		iFontChoose.setMargin(new Insets(2, -20, 2, 2));
+		iFontChoose.addActionListener(this);
+		iFontChoose.setActionCommand("FontChoose");
+		menuFont.add(iFontChoose);
+
+		iFontLarger = new JMenuItem("Larger");
+		iFontLarger.setMargin(new Insets(2, -20, 2, 2));
+		iFontLarger.addActionListener(this);
+		iFontLarger.setActionCommand("FontLarger");
+		menuFont.add(iFontLarger);
+		
+		iFontSmaller = new JMenuItem("Smaller");
+		iFontSmaller.setMargin(new Insets(2, -20, 2, 2));
+		iFontSmaller.addActionListener(this);
+		iFontSmaller.setActionCommand("FontSmaller");
+		menuFont.add(iFontSmaller);
+		
+		menuFont.addSeparator();
+		
+		iFontReset = new JMenuItem("Reset Size");
+		iFontReset.setMargin(new Insets(2, -20, 2, 2));
+		iFontReset.addActionListener(this);
+		iFontReset.setActionCommand("FontReset");
+		menuFont.add(iFontReset);
+		
 	}
 
 	@Override
@@ -276,6 +383,11 @@ public class GUI implements ActionListener {
 		case "Paste": edit.paste(); break;
 		case "Delete": edit.delete(); break;
 		case "SelectAll": edit.selectAll(); break;
+		case "WordWrap": view.wordWrap(); break;
+		case "FontChoose": pref.fontChoose(); break;
+		case "FontLarger": pref.fontLarger(); break;
+		case "FontSmaller": pref.fontSmaller(); break;
+		case "FontReset": pref.fontReset(); break;
 		}
 	}
 	
