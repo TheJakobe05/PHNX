@@ -40,7 +40,8 @@ public class Function_File {
         		
         		fileName = null;
         		fileAddress = null;
-        		
+
+        		gui.docTypeLabel.setText("Plain Text");
         		gui.fileSaved = true;
             }
     	} else {
@@ -49,6 +50,8 @@ public class Function_File {
     		
     		fileName = null;
     		fileAddress = null;
+    		
+    		gui.docTypeLabel.setText("Plain Text");
     		
     		gui.fileSaved = true;
     	}
@@ -89,6 +92,8 @@ public class Function_File {
 			fileAddress = fd.getDirectory();
 			
 			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+			
+			gui.docType.loadDocumentType(fileName);
 		} else {
 			return;
 		}
@@ -107,6 +112,7 @@ public class Function_File {
 			br.close();
 			
 			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+			gui.docType.loadDocumentType(fileName);
 			
 			gui.fileSaved = true;
 			
@@ -126,6 +132,8 @@ public class Function_File {
 				gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
 				fw.close();
 				
+				gui.docType.loadDocumentType(fileName);
+				
 				gui.fileSaved = true;
 				
 			} catch(Exception e) {
@@ -144,6 +152,8 @@ public class Function_File {
 			fileAddress = fd.getDirectory();
 
 			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+			
+			gui.docType.loadDocumentType(fileName);
 		}
 		
 		try {
@@ -151,6 +161,8 @@ public class Function_File {
 			FileWriter fw = new FileWriter(fileAddress + fileName);
 			fw.write(gui.textArea.getText());
 			fw.close();
+			
+			gui.docType.loadDocumentType(fileName);
 	
 			gui.fileSaved = true;
 			
