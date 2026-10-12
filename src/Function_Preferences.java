@@ -14,6 +14,7 @@ public class Function_Preferences {
 	int defaultFontSize = 16;
 	int fontSize = defaultFontSize;
 	int defaultTheme = 2;
+	int selectedTheme = 2;
 	
 	public Function_Preferences(GUI gui) {
 		
@@ -34,10 +35,14 @@ public class Function_Preferences {
 		gui.statusPanel.setBackground(Color.decode("#A8B0A5"));
 		gui.colRowLabel.setForeground(Color.decode("#7A6B8A"));
 		gui.docTypeLabel.setForeground(Color.decode("#7A6B8A"));
-		
+
 		gui.iTheme1.setSelected(true);
-		
+		selectedTheme = 1;
+
 		gui.iTheme2.setSelected(false);
+		gui.iTheme3.setSelected(false);
+		gui.iTheme4.setSelected(false);
+		gui.iTheme5.setSelected(false);
 		
 	}
 	public void setThemeCinderandAsh() {
@@ -53,10 +58,84 @@ public class Function_Preferences {
 		gui.statusPanel.setBackground(Color.decode("#1A1A1A"));
 		gui.colRowLabel.setForeground(Color.decode("#E8E4E0"));
 		gui.docTypeLabel.setForeground(Color.decode("#E8E4E0"));
-		
+
 		gui.iTheme2.setSelected(true);
-		
+		selectedTheme = 2;
+
 		gui.iTheme1.setSelected(false);
+		gui.iTheme3.setSelected(false);
+		gui.iTheme4.setSelected(false);
+		gui.iTheme5.setSelected(false);
+	}
+	
+	public void setThemeVaporwave77() {
+		gui.textArea.setBackground(Color.decode("#0D0221"));
+		gui.textArea.setForeground(Color.decode("#F0E6FF"));
+		gui.textArea.setCaretColor(Color.decode("#B967FF"));
+		gui.textArea.setSelectionColor(Color.decode("#01CDFE"));
+		gui.textArea.setSelectedTextColor(Color.decode("#ffffff"));
+
+		gui.lineNumbers.setBackground(Color.decode("#1E0B3A"));
+		gui.lineNumbers.setForeground(Color.decode("#01CDFE"));
+		
+		gui.statusPanel.setBackground(Color.decode("#1E0B3A"));
+		gui.colRowLabel.setForeground(Color.decode("#01CDFE"));
+		gui.docTypeLabel.setForeground(Color.decode("#01CDFE"));
+
+		gui.iTheme3.setSelected(true);
+		selectedTheme = 3;
+
+		gui.iTheme1.setSelected(false);
+		gui.iTheme2.setSelected(false);
+		gui.iTheme4.setSelected(false);
+		gui.iTheme5.setSelected(false);
+	}
+	
+	public void setThemeMatchaLatte() {
+		gui.textArea.setBackground(Color.decode("#E0DBD0"));
+		gui.textArea.setForeground(Color.decode("#2A3428"));
+		gui.textArea.setCaretColor(Color.decode("#6B8F4E"));
+		gui.textArea.setSelectionColor(Color.decode("#B8924A"));
+		gui.textArea.setSelectedTextColor(Color.decode("#ffffff"));
+
+		gui.lineNumbers.setBackground(Color.decode("#6B8F4E"));
+		gui.lineNumbers.setForeground(Color.decode("#E5E0D4"));
+		
+		gui.statusPanel.setBackground(Color.decode("#6B8F4E"));
+		gui.colRowLabel.setForeground(Color.decode("#E5E0D4"));
+		gui.docTypeLabel.setForeground(Color.decode("#E5E0D4"));
+
+		gui.iTheme4.setSelected(true);
+		selectedTheme = 4;
+
+		gui.iTheme1.setSelected(false);
+		gui.iTheme2.setSelected(false);
+		gui.iTheme3.setSelected(false);
+		gui.iTheme5.setSelected(false);
+	}
+	
+	public void setThemeCremeBrulee() {
+
+		gui.textArea.setBackground(Color.decode("#F8F1E3"));
+		gui.textArea.setForeground(Color.decode("#3A2F22"));
+		gui.textArea.setCaretColor(Color.decode("#C48A3A"));
+		gui.textArea.setSelectionColor(Color.decode("#EBD9B0"));
+		gui.textArea.setSelectedTextColor(Color.decode("#ffffff"));
+
+		gui.lineNumbers.setBackground(Color.decode("#F5E9C8"));
+		gui.lineNumbers.setForeground(Color.decode("#A89B82"));
+		
+		gui.statusPanel.setBackground(Color.decode("#F5E9C8"));
+		gui.colRowLabel.setForeground(Color.decode("#A89B82"));
+		gui.docTypeLabel.setForeground(Color.decode("#A89B82"));
+		
+		gui.iTheme5.setSelected(true);
+		selectedTheme = 5;
+
+		gui.iTheme1.setSelected(false);
+		gui.iTheme2.setSelected(false);
+		gui.iTheme3.setSelected(false);
+		gui.iTheme4.setSelected(false);
 	}
 	
 	public void fontChoose() {

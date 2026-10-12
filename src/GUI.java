@@ -2,6 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Insets;
@@ -11,6 +12,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.net.URI;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -46,7 +48,7 @@ public class GUI implements ActionListener {
 	JScrollPane scrollPane;
 //	Menu Bar
 	JMenuBar menuBar;
-	JMenu menuFile, menuEdit, menuView, menuPreferences;
+	JMenu menuFile, menuEdit, menuView, menuPreferences, menuHelp;
 //	File Menu
 	JMenuItem iNew, iNewWindow, iCloseWindow, iOpen, iSave, iSaveAs, iExit;
 //	Edit Menu
@@ -55,9 +57,11 @@ public class GUI implements ActionListener {
 	JCheckBoxMenuItem iWordWrap;
 //	Preferences Menu
 	JMenu menuTheme;
-	JCheckBoxMenuItem iTheme1, iTheme2;
+	JCheckBoxMenuItem iTheme1, iTheme2, iTheme3, iTheme4, iTheme5;
 	JMenu menuFont;
 	JMenuItem iFontChoose, iFontSmaller, iFontLarger, iFontReset;
+//	Help Menu
+	JMenuItem iTwitter, iGithub, iChangeLog, iAbout, iReportaBug, iSponsor;
 	
 //	Status Bar
 	JPanel statusPanel;
@@ -67,16 +71,19 @@ public class GUI implements ActionListener {
 	Function_Edit edit = new Function_Edit(this);
 	Function_View view = new Function_View(this);
 	Function_Preferences pref = new Function_Preferences(this);
+	Function_Help help = new Function_Help(this);
 
 	Load_Document_Type docType = new Load_Document_Type(this);
+	
+//	EASTER EGGS
 	
 	KeyHandler kHandler = new KeyHandler(this);
 	
 	UndoManager um = new UndoManager();
 
 	String appName = "PHNX";
-	String appVersion = "v0.6.0 (alpha)";
-	String defaultAppTitle = appName + " " + appVersion;
+	String appVersion = "0.7.0 (alpha)";
+	String defaultAppTitle = appName;
 	int WIDTH = 800;
 	int HEIGHT = 600;
 	
@@ -106,12 +113,16 @@ public class GUI implements ActionListener {
 		createEditMenu();
 		createViewMenu();
 		createPreferencesMenu();
+		createHelpMenu();
 		
 //		pick default editors theme
 		int pickDefaultTheme = pref.defaultTheme;
 		switch(pickDefaultTheme) {
 		case 1: pref.setThemeAlabaster(); break;
 		case 2: pref.setThemeCinderandAsh(); break;
+		case 3: pref.setThemeVaporwave77(); break;
+		case 4: pref.setThemeMatchaLatte(); break;
+		case 5: pref.setThemeCremeBrulee(); break;
 		}
 		
 		window.setVisible(true);
@@ -263,9 +274,12 @@ public class GUI implements ActionListener {
 
 		menuView = new JMenu("View");
 		menuBar.add(menuView);
-		
+
 		menuPreferences = new JMenu("Preferences");
 		menuBar.add(menuPreferences);
+		
+		menuHelp = new JMenu("Help");
+		menuBar.add(menuHelp);
 		
 	}
 	
@@ -451,6 +465,21 @@ public class GUI implements ActionListener {
 		iTheme2.addActionListener(this);
 		iTheme2.setActionCommand("Theme2");
 		menuTheme.add(iTheme2);
+		
+		iTheme3 = new JCheckBoxMenuItem("Vaporwave 77");
+		iTheme3.addActionListener(this);
+		iTheme3.setActionCommand("Theme3");
+		menuTheme.add(iTheme3);
+		
+		iTheme4 = new JCheckBoxMenuItem("Matcha Latte");
+		iTheme4.addActionListener(this);
+		iTheme4.setActionCommand("Theme4");
+		menuTheme.add(iTheme4);
+		
+		iTheme5 = new JCheckBoxMenuItem("Crème Brûlée");
+		iTheme5.addActionListener(this);
+		iTheme5.setActionCommand("Theme5");
+		menuTheme.add(iTheme5);
 
 		menuPreferences.addSeparator();
 		
@@ -487,11 +516,66 @@ public class GUI implements ActionListener {
 		menuFont.add(iFontReset);
 		
 	}
+	
+	public void createHelpMenu() {
+
+		ImageIcon twitterIcon = new ImageIcon(getClass().getClassLoader().getResource("twitter.png"));
+		ImageIcon githubIcon = new ImageIcon(getClass().getClassLoader().getResource("github.png"));
+		ImageIcon changelogIcon = new ImageIcon(getClass().getClassLoader().getResource("changelog.png"));
+		ImageIcon aboutIcon = new ImageIcon(getClass().getClassLoader().getResource("about.png"));
+		ImageIcon reportabugIcon = new ImageIcon(getClass().getClassLoader().getResource("reportabug.png"));
+		ImageIcon sponsorIcon = new ImageIcon(getClass().getClassLoader().getResource("sponsor.png"));
+		
+		iTwitter = new JMenuItem("Twitter");
+		iTwitter.setIcon(twitterIcon);
+		iTwitter.setMargin(new Insets(2, -20, 2, 2));
+		iTwitter.addActionListener(this);
+		iTwitter.setActionCommand("Twitter");
+		menuHelp.add(iTwitter);
+		
+		iGithub = new JMenuItem("Github");
+		iGithub.setIcon(githubIcon);
+		iGithub.setMargin(new Insets(2, -20, 2, 2));
+		iGithub.addActionListener(this);
+		iGithub.setActionCommand("Github");
+		menuHelp.add(iGithub);
+		
+		iChangeLog = new JMenuItem("Changelog...");
+		iChangeLog.setIcon(changelogIcon);
+		iChangeLog.setMargin(new Insets(2, -20, 2, 2));
+		iChangeLog.addActionListener(this);
+		iChangeLog.setActionCommand("ChangeLog");
+		menuHelp.add(iChangeLog);
+		
+		menuHelp.addSeparator();
+		
+		iAbout = new JMenuItem("About " + appName);
+		iAbout.setIcon(aboutIcon);
+		iAbout.setMargin(new Insets(2, -20, 2, 2));
+		iAbout.addActionListener(this);
+		iAbout.setActionCommand("About");
+		menuHelp.add(iAbout);
+		
+		iReportaBug = new JMenuItem("Report a Bug");
+		iReportaBug.setIcon(reportabugIcon);
+		iReportaBug.setMargin(new Insets(2, -20, 2, 2));
+		iReportaBug.addActionListener(this);
+		iReportaBug.setActionCommand("ReportBug");
+		menuHelp.add(iReportaBug);
+		
+		iSponsor = new JMenuItem("Sponsor");
+		iSponsor.setIcon(sponsorIcon);
+		iSponsor.setMargin(new Insets(2, -20, 2, 2));
+		iSponsor.addActionListener(this);
+		iSponsor.setActionCommand("Sponsor");
+		menuHelp.add(iSponsor);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
 		String command = e.getActionCommand();
+		String url;
 		
 		switch(command) {
 		case "New": file.newFile(); break;
@@ -511,13 +595,34 @@ public class GUI implements ActionListener {
 		case "WordWrap": view.wordWrap(); break;
 		case "Theme1": pref.setThemeAlabaster(); break;
 		case "Theme2": pref.setThemeCinderandAsh(); break;
+		case "Theme3": pref.setThemeVaporwave77(); break;
+		case "Theme4": pref.setThemeMatchaLatte(); break;
+		case "Theme5": pref.setThemeCremeBrulee(); break;
 		case "FontChoose": pref.fontChoose(); break;
 		case "FontLarger": pref.fontLarger(); break;
 		case "FontSmaller": pref.fontSmaller(); break;
 		case "FontReset": pref.fontReset(); break;
+		case "Twitter": url = "https://x.com/thejakobe05"; openLink(url); break;
+		case "Github": url = "https://github.com/TheJakobe05"; openLink(url); break;
+		case "ChangeLog": url = "https://github.com/TheJakobe05/PHNX/releases"; openLink(url); break;
+		case "About": help.assembleMasthead(); break;
+		case "ReportBug": url = "https://mailto:jacoblynnortiz.jlo@gmail.com"; openLink(url); break;
+		case "Sponsor": url = "https://www.patreon.com/cw/TheJakobe05"; openLink(url); break;
 		}
 	}
 	
-	
+	public void openLink(String url) {
+		try {
+            // Check if the Desktop API is supported on the current platform
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                // Get the Desktop instance and open the URI
+                Desktop.getDesktop().browse(new URI(url));
+            } else {
+                System.out.println("Desktop browsing is not supported on this platform.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+	}
 	
 }

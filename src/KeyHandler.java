@@ -42,6 +42,10 @@ public class KeyHandler implements KeyListener {
 //		if(e.isControlDown() && e.getKeyCode()==KeyEvent.VK_Y) {
 //			gui.edit.redo();
 //		}
+//		SECRET EASTER EGGS
+		if(e.isControlDown() && e.isShiftDown() && e.getKeyCode()==KeyEvent.VK_1) {
+		new Calculator();
+	}
 	}
 
 	@Override

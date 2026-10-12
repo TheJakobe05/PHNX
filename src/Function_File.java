@@ -83,42 +83,91 @@ public class Function_File {
 	}
 	
 	public void open() {
+		
+    	if(gui.fileSaved == false) {
 
-		FileDialog fd = new FileDialog(gui.window, "Open", FileDialog.LOAD);
-		fd.setVisible(true);
-		
-		if(fd.getFile()!=null) {
-			fileName = fd.getFile();
-			fileAddress = fd.getDirectory();
-			
-			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
-			
-			gui.docType.loadDocumentType(fileName);
-		} else {
-			return;
-		}
-		
-		try {
-			
-			BufferedReader br = new BufferedReader(new FileReader(fileAddress + fileName));
-			
-			gui.textArea.setText("");
-			
-			String line = null;
-			
-			while((line = br.readLine())!= null) {
-				gui.textArea.append(line + "\n");
-			}
-			br.close();
-			
-			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
-			gui.docType.loadDocumentType(fileName);
-			
-			gui.fileSaved = true;
-			
-		} catch(Exception e) {
-			e.printStackTrace();
-		}
+            int result = JOptionPane.showConfirmDialog(
+                ConfirmExitFrame,
+                "Are you sure you want to open a file with unsaved changes?",
+                "Overide Unsaved Changes Confirmation",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            );
+
+            if (result == JOptionPane.YES_OPTION) {
+            	FileDialog fd = new FileDialog(gui.window, "Open", FileDialog.LOAD);
+        		fd.setVisible(true);
+        		
+        		if(fd.getFile()!=null) {
+        			fileName = fd.getFile();
+        			fileAddress = fd.getDirectory();
+        			
+        			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+        			
+        			gui.docType.loadDocumentType(fileName);
+        		} else {
+        			return;
+        		}
+        		
+        		try {
+        			
+        			BufferedReader br = new BufferedReader(new FileReader(fileAddress + fileName));
+        			
+        			gui.textArea.setText("");
+        			
+        			String line = null;
+        			
+        			while((line = br.readLine())!= null) {
+        				gui.textArea.append(line + "\n");
+        			}
+        			br.close();
+        			
+        			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+        			gui.docType.loadDocumentType(fileName);
+        			
+        			gui.fileSaved = true;
+        			
+        		} catch(Exception e) {
+        			e.printStackTrace();
+        		}
+            }
+    	} else {
+    		FileDialog fd = new FileDialog(gui.window, "Open", FileDialog.LOAD);
+    		fd.setVisible(true);
+    		
+    		if(fd.getFile()!=null) {
+    			fileName = fd.getFile();
+    			fileAddress = fd.getDirectory();
+    			
+    			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+    			
+    			gui.docType.loadDocumentType(fileName);
+    		} else {
+    			return;
+    		}
+    		
+    		try {
+    			
+    			BufferedReader br = new BufferedReader(new FileReader(fileAddress + fileName));
+    			
+    			gui.textArea.setText("");
+    			
+    			String line = null;
+    			
+    			while((line = br.readLine())!= null) {
+    				gui.textArea.append(line + "\n");
+    			}
+    			br.close();
+    			
+    			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+    			gui.docType.loadDocumentType(fileName);
+    			
+    			gui.fileSaved = true;
+    			
+    		} catch(Exception e) {
+    			e.printStackTrace();
+    		}
+    	}
 		
 	}
 
