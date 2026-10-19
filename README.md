@@ -40,7 +40,7 @@
 
 | Hint                 | What happens                    |
 |-------------------|---------------------------------|
-| A certain 80s cheat code still works      | The rain is coming        |
+| A certain 80s cheat code still works      | Never send a human to do a machine's job |
 | The version number is more than it seems  | Something slithers        |
 | Some words just want to dance             | The themes lose their mind|
 | What goes up...      | Must come down                  |
