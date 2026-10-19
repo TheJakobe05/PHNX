@@ -47,6 +47,7 @@
 | Leave it alone for a while | It gets bored and wanders |
 | War never changes    | Neither does the terminal       |
 | The classic god mode code  | Rip and tear              |
+| Finish him                                | The line doesn't survive        |
 | Listen closely       | Some words have sound           |
 
 ## Screenshots
