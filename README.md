@@ -36,18 +36,18 @@
 - **Ctrl + Scroll** to change font size
 - Tons of **Easter eggs**
 
-## Easter Eggs
+## Easter Eggs Hints
 
-| Trigger              | Effect                          |
-|----------------------|---------------------------------|
-| Konami code          | Matrix rain                     |
-| Double-click version | Snake game                      |
-| Type `disco`         | Theme party mode                |
-| Type `gravity`       | Text falls downward             |
-| Idle 5 minutes       | DVD logo bounce                 |
-| Type `fallout`       | Pip-Boy terminal theme          |
-| Type `iddqd`          | DOOM theme                     |
-| …and more            | Sound effects, etc.             |
+| Hint                 | What happens                    |
+|-------------------|---------------------------------|
+| A certain 80s cheat code still works  | Matrix rain    |
+| The version number is more than it seems  | Something slithers        |
+| Some words just want to dance             | The themes lose their mind|
+| What goes up...      | Must come down                  |
+| Leave it alone for a while | It gets bored and wanders |
+| War never changes    | Neither does the terminal       |
+| The classic god mode code  | Rip and tear              |
+| Listen closely       | Some words have sound           |
 
 ## Screenshots
 
