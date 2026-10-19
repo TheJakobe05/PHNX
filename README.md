@@ -74,6 +74,6 @@
 
 ### Run
 ```bash
-git clone https://github.com/yourusername/phnx.git
+git clone https://github.com/TheJakobe05/PHNX.git
 cd phnx
 # java -jar PHNX.jar
