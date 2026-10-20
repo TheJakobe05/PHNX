@@ -275,6 +275,19 @@ public void createMenuBar() {
 		gui.iTheme5.addActionListener(this);
 		gui.iTheme5.setActionCommand("Theme5");
 		gui.menuTheme.add(gui.iTheme5);
+		
+		gui.menuThemeCustom = new JMenu("Customize...");
+		gui.menuTheme.add(gui.menuThemeCustom);
+		
+		gui.iThemeCustom = new JCheckBoxMenuItem("Custom Theme");
+		gui.iThemeCustom.addActionListener(this);
+		gui.iThemeCustom.setActionCommand("CustomTheme");
+		gui.menuThemeCustom.add(gui.iThemeCustom);
+		
+		gui.iThemeConfig = new JMenuItem("Config...");
+		gui.iThemeConfig.addActionListener(this);
+		gui.iThemeConfig.setActionCommand("CustomConfig");
+		gui.menuThemeCustom.add(gui.iThemeConfig);
 
 		gui.menuPreferences.addSeparator();
 		
@@ -399,6 +412,8 @@ public void createMenuBar() {
 		case "Theme3": gui.pref.setThemeVaporwave77(); break;
 		case "Theme4": gui.pref.setThemeMatchaLatte(); break;
 		case "Theme5": gui.pref.setThemeCremeBrulee(); break;
+		case "CustomTheme": gui.pref.setCustomTheme(); break;
+		case "CustomConfig": gui.pref.openConfig(); break;
 		case "FontChoose": gui.pref.fontChoose(); break;
 		case "FontLarger": gui.pref.fontLarger(); break;
 		case "FontSmaller": gui.pref.fontSmaller(); break;

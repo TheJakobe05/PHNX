@@ -18,8 +18,9 @@ public class Function_Edit implements SearchListener {
 	GUI gui;
 	
 	// Keep the dialogs as fields so they are created only once
-	private FindDialog findDialog;
-	private ReplaceDialog replaceDialog;
+	FindDialog findDialog;
+	ReplaceDialog replaceDialog;
+	GoToDialog dialog;
 	
 	public Function_Edit(GUI gui) {
 		
@@ -101,7 +102,7 @@ public class Function_Edit implements SearchListener {
 			replaceDialog.setVisible(false);
 		}
 		
-		GoToDialog dialog = new GoToDialog(gui.window);
+		dialog = new GoToDialog(gui.window);
 		dialog.setMaxLineNumberAllowed(gui.textArea.getLineCount());
 		dialog.setResizable(false);
 		

@@ -14,6 +14,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
@@ -54,6 +55,12 @@ public class TextArea {
 		gui.textArea.setCloseMarkupTags(true);
 		
 		gui.textArea.addKeyListener(gui.kHandler);
+		
+		SwingUtilities.invokeLater(() -> {
+		    int extra = gui.scrollPane.getViewport().getHeight();
+		    if (extra < 100) extra = 300;
+		    gui.textArea.setMargin(new java.awt.Insets(0, 0, extra, 0));
+		});
 		
 		gui.textArea.getDocument().addUndoableEditListener(
 			new UndoableEditListener() {

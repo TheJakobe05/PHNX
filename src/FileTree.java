@@ -1,18 +1,32 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
-import javax.swing.Timer;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 
+import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -28,7 +42,7 @@ public class FileTree extends JPanel {
 	
     public final JTree tree;
     JScrollPane scroll;
-    private final DefaultTreeModel model;
+    public final DefaultTreeModel model;
     private File rootFolder;
     JLabel title;
     
@@ -52,6 +66,22 @@ public class FileTree extends JPanel {
         model = new DefaultTreeModel(root);
         tree = new JTree(model);
         
+        tree.addTreeWillExpandListener(new javax.swing.event.TreeWillExpandListener() {
+            @Override
+            public void treeWillExpand(javax.swing.event.TreeExpansionEvent event) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) event.getPath().getLastPathComponent();
+                if (node.getChildCount() == 0) {
+                    loadChildren(node);
+                    ((DefaultTreeModel) tree.getModel()).reload(node);
+                }
+            }
+            @Override
+            public void treeWillCollapse(javax.swing.event.TreeExpansionEvent event) {}
+        });
+        
+        setupInternalDragAndDrop();
+        setupContextMenu();
+        
         Font treeFont = tree.getFont();
         tree.setFont(new Font(treeFont.getName(), treeFont.getStyle(), 12));
         tree.setRootVisible(true);
@@ -70,23 +100,33 @@ public class FileTree extends JPanel {
         tree.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() != 2) return;
-
                 TreePath path = tree.getPathForLocation(e.getX(), e.getY());
                 if (path == null) return;
 
-                DefaultMutableTreeNode node =
-                        (DefaultMutableTreeNode) path.getLastPathComponent();
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
                 Object uo = node.getUserObject();
                 if (!(uo instanceof FileNode)) return;
 
                 File f = ((FileNode) uo).file;
-                if (f.isFile()) {
+
+                // Single click on a folder → toggle expand/collapse
+                if (e.getClickCount() == 1 && f.isDirectory()) {
+                    if (tree.isExpanded(path)) {
+                        tree.collapsePath(path);
+                    } else {
+                        // Lazy-load children if needed
+                        if (node.getChildCount() == 0) {
+                            loadChildren(node);
+                            model.reload(node);
+                        }
+                        tree.expandPath(path);
+                    }
+                    return;
+                }
+
+                // Double click on a file → open it
+                if (e.getClickCount() == 2 && f.isFile()) {
                     gui.openFileFromDrop(f);
-                } else if (f.isDirectory() && node.isLeaf()) {
-                    loadChildren(node); // expand folder on first open
-                    model.reload(node);
-                    tree.expandPath(path);
                 }
             }
         });
@@ -107,10 +147,12 @@ public class FileTree extends JPanel {
         rootFolder = folder;
         FileNode rootNode = new FileNode(folder);
         DefaultMutableTreeNode root = new DefaultMutableTreeNode(rootNode);
-        loadChildrenRecursive(root);
+        loadChildren(root);
         model.setRoot(root);
         model.reload();
         tree.setRootVisible(true);
+        
+        gui.fileTree.setVisible(true);
     }
 
     private void loadChildren(DefaultMutableTreeNode parent) {
@@ -136,35 +178,6 @@ public class FileTree extends JPanel {
             parent.add(child);
         }
     }
-    
-    public void loadChildrenRecursive(DefaultMutableTreeNode parent) {
-        Object uo = parent.getUserObject();
-        if (!(uo instanceof FileNode)) return;
-
-        File dir = ((FileNode) uo).file;
-        if (!dir.isDirectory()) return;
-
-        File[] files = dir.listFiles();
-        if (files == null) return;
-
-        java.util.Arrays.sort(files, (a, b) -> {
-            if (a.isDirectory() && !b.isDirectory()) return -1;
-            if (!a.isDirectory() && b.isDirectory()) return 1;
-            return a.getName().compareToIgnoreCase(b.getName());
-        });
-
-        for (File f : files) {
-            if (f.isHidden()) continue;
-
-            DefaultMutableTreeNode child = new DefaultMutableTreeNode(new FileNode(f));
-            parent.add(child);
-
-            // Preload subfolders so they can be expanded later
-            if (f.isDirectory()) {
-                loadChildrenRecursive(child);
-            }
-        }
-    }
 
     public File getRootFolder() {
         return rootFolder;
@@ -181,8 +194,7 @@ public class FileTree extends JPanel {
     }
     
     public class FileTreeCellRenderer extends DefaultTreeCellRenderer {
-
-    	// Folders
+		// Folders
         private final Icon folderIcon;
         private final Icon openFolderIcon;
         private final Icon defaultFileIcon;
@@ -203,8 +215,23 @@ public class FileTree extends JPanel {
         // Images
         private final Icon imageIcon, svgIcon;
 
+        // Music Icon
+        
+        private final Icon musicIcon;
+        
+        // Video Icon
+        
+        private final Icon videoIcon;
+
+        // Executable File Icons
+        
+        private final Icon exeIcon, jarIcon;
+        
         // Documents
         private final Icon docIcon, xlsIcon, pptIcon;
+        
+        // zip
+        private final Icon zipIcon, rarIcon, svnzIcon, tarIcon;
 
         public FileTreeCellRenderer() {
             // Load your icons (put the PNGs on the classpath, e.g. res/ or resources/)
@@ -251,10 +278,20 @@ public class FileTree extends JPanel {
 
             imageIcon       = loadIcon("img.png");
             svgIcon         = loadIcon("svg.png");
+            musicIcon         = loadIcon("mp3.png");
+            videoIcon         = loadIcon("mp4.png");
+            
+            exeIcon         = loadIcon("app.png");
+            jarIcon         = loadIcon("jar.png");
 
             docIcon         = loadIcon("docx.png");
             xlsIcon         = loadIcon("xlsx.png");
             pptIcon         = loadIcon("pptx.png");
+
+            zipIcon         = loadIcon("zip.png");
+            rarIcon         = loadIcon("rar.png");
+            svnzIcon         = loadIcon("7z.png");
+            tarIcon         = loadIcon("tar.png");
         }
 
         private Icon loadIcon(String name) {
@@ -347,11 +384,31 @@ public class FileTree extends JPanel {
             if (name.endsWith(".png") || name.endsWith(".jpg") || name.endsWith(".jpeg") ||
                 name.endsWith(".gif") || name.endsWith(".webp") || name.endsWith(".bmp") ||
                 name.endsWith(".ico")) return imageIcon;
+            
+         // Music
+            if (name.endsWith(".mp3") || name.endsWith(".wav") || name.endsWith(".m4a") ||
+                    name.endsWith(".aac") || name.endsWith(".ogg") || name.endsWith(".flac") ||
+                    name.endsWith(".alac") || name.endsWith(".aiff")) return musicIcon;
+            
+         // Video
+            if (name.endsWith(".mp4") || name.endsWith(".mov") || name.endsWith(".mkv") ||
+                    name.endsWith(".avi") || name.endsWith(".webm") || name.endsWith(".wmv") ||
+                    name.endsWith(".mts") || name.endsWith(".m2ts")) return videoIcon;
+            
+         // EXEculatable files
+            if (name.endsWith(".exe"))  return exeIcon;
+            if (name.endsWith(".jar"))  return jarIcon;
 
             // Documents
             if (name.endsWith(".docx") || name.endsWith(".odt")) return docIcon;
             if (name.endsWith(".xlsx") || name.endsWith(".ods")) return xlsIcon;
             if (name.endsWith(".pptx") || name.endsWith(".odp")) return pptIcon;
+
+            // zips
+            if (name.endsWith(".zip") || name.endsWith(".zipx")) return zipIcon;
+            if (name.endsWith(".rar")) return rarIcon;
+            if (name.endsWith(".7z")) return svnzIcon;
+            if (name.endsWith(".tar.gz") || name.endsWith(".tar") || name.endsWith(".tar.bz2") || name.endsWith(".tar.xz")) return tarIcon;
 
             // Git / misc
             if (name.equals(".gitattributes") ||
@@ -379,42 +436,324 @@ public class FileTree extends JPanel {
         }
     }
 
-    /** Reload the current root folder, keeping expansion state as best as possible */
+    /** Reload the current root folder, keeping expansion state */
     public void refresh() {
         if (rootFolder == null || !rootFolder.exists()) return;
 
-        // Remember which paths were expanded
+        // 1. Remember expanded folders by absolute path
         java.util.Set<String> expanded = new java.util.HashSet<>();
-        collectExpandedPaths(new TreePath(model.getRoot()), expanded);
+        collectExpandedByPath(new TreePath(model.getRoot()), expanded);
 
-        // Reload
-        FileNode rootNode = new FileNode(rootFolder);
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode(rootNode);
-        loadChildrenRecursive(root);
-        model.setRoot(root);
+        // 2. Rebuild the tree (top level only)
+        DefaultMutableTreeNode newRoot = new DefaultMutableTreeNode(new FileNode(rootFolder));
+        loadChildren(newRoot);
+        model.setRoot(newRoot);
         model.reload();
 
-        // Restore expansion
-        restoreExpanded(new TreePath(root), expanded);
+        // 3. Restore expansion (this version loads children as needed)
+        restoreExpandedByPath(new TreePath(newRoot), expanded);
     }
 
-    private void collectExpandedPaths(TreePath path, java.util.Set<String> expanded) {
+    private void collectExpandedByPath(TreePath path, java.util.Set<String> expanded) {
         if (tree.isExpanded(path)) {
-            expanded.add(path.toString());
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+            Object uo = node.getUserObject();
+            if (uo instanceof FileNode) {
+                expanded.add(((FileNode) uo).file.getAbsolutePath());
+            }
         }
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
         for (int i = 0; i < node.getChildCount(); i++) {
-            collectExpandedPaths(path.pathByAddingChild(node.getChildAt(i)), expanded);
+            collectExpandedByPath(path.pathByAddingChild(node.getChildAt(i)), expanded);
         }
     }
 
-    private void restoreExpanded(TreePath path, java.util.Set<String> expanded) {
-        if (expanded.contains(path.toString())) {
-            tree.expandPath(path);
-        }
+    private void restoreExpandedByPath(TreePath path, java.util.Set<String> expanded) {
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+        Object uo = node.getUserObject();
+
+        if (uo instanceof FileNode) {
+            String abs = ((FileNode) uo).file.getAbsolutePath();
+            if (expanded.contains(abs)) {
+                // Make sure children are loaded before expanding
+                if (node.getChildCount() == 0) {
+                    loadChildren(node);
+                    model.reload(node);
+                }
+                tree.expandPath(path);
+            }
+        }
+
+        // Recurse into children (after possible load)
         for (int i = 0; i < node.getChildCount(); i++) {
-            restoreExpanded(path.pathByAddingChild(node.getChildAt(i)), expanded);
+            restoreExpandedByPath(path.pathByAddingChild(node.getChildAt(i)), expanded);
+        }
+    }
+    
+    private void setupInternalDragAndDrop() {
+        tree.setDragEnabled(true);
+
+        tree.setTransferHandler(new TransferHandler() {
+            private File draggedFile;
+
+            public int getSourceActions(JComponent c) {
+                return MOVE;
+            }
+
+            protected Transferable createTransferable(JComponent c) {
+                TreePath path = tree.getSelectionPath();
+                if (path == null) return null;
+
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                Object uo = node.getUserObject();
+                if (!(uo instanceof FileNode)) return null;
+
+                draggedFile = ((FileNode) uo).file;
+                return new FileTransferable(draggedFile);
+            }
+
+            public boolean canImport(TransferSupport support) {
+                if (!support.isDrop() || !support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+                    return false;
+                }
+
+                // Only allow drop on a directory
+                JTree.DropLocation loc = (JTree.DropLocation) support.getDropLocation();
+                TreePath path = loc.getPath();
+                if (path == null) return false;
+
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                Object uo = node.getUserObject();
+                if (!(uo instanceof FileNode)) return false;
+
+                File target = ((FileNode) uo).file;
+                return target.isDirectory() && draggedFile != null && !draggedFile.equals(target)
+                        && !isDescendant(draggedFile, target);
+            }
+
+            public boolean importData(TransferSupport support) {
+                if (!canImport(support)) return false;
+
+                try {
+                    JTree.DropLocation loc = (JTree.DropLocation) support.getDropLocation();
+                    TreePath path = loc.getPath();
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                    File targetDir = ((FileNode) node.getUserObject()).file;
+
+                    @SuppressWarnings("unchecked")
+                    List<File> files = (List<File>) support.getTransferable()
+                            .getTransferData(DataFlavor.javaFileListFlavor);
+
+                    for (File src : files) {
+                        File dest = new File(targetDir, src.getName());
+                        // Avoid overwriting
+                        if (dest.exists()) {
+                            System.err.println("Target already exists: " + dest);
+                            continue;
+                        }
+                        Files.move(src.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    }
+
+                    // Refresh the tree
+                    refresh();
+                    return true;
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    return false;
+                }
+            }
+        });
+    }
+
+    // Helper: prevent dropping a folder into itself or its own child
+    private boolean isDescendant(File parent, File child) {
+        try {
+            return child.getCanonicalPath().startsWith(parent.getCanonicalPath() + File.separator);
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    // Simple transferable
+    private static class FileTransferable implements Transferable {
+        private final File file;
+        FileTransferable(File file) { this.file = file; }
+
+        @Override
+        public DataFlavor[] getTransferDataFlavors() {
+            return new DataFlavor[]{DataFlavor.javaFileListFlavor};
+        }
+
+        @Override
+        public boolean isDataFlavorSupported(DataFlavor flavor) {
+            return DataFlavor.javaFileListFlavor.equals(flavor);
+        }
+
+        @Override
+        public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException {
+            if (!isDataFlavorSupported(flavor)) throw new UnsupportedFlavorException(flavor);
+            return java.util.Collections.singletonList(file);
+        }
+    }
+    
+    private void setupContextMenu() {
+        tree.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                showPopup(e);
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                showPopup(e);
+            }
+
+            private void showPopup(MouseEvent e) {
+                if (!e.isPopupTrigger()) return;
+
+                TreePath path = tree.getPathForLocation(e.getX(), e.getY());
+                if (path == null) return;
+
+                tree.setSelectionPath(path);
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                Object uo = node.getUserObject();
+                if (!(uo instanceof FileNode)) return;
+
+                File file = ((FileNode) uo).file;
+                boolean isDir = file.isDirectory();
+
+                JPopupMenu popup = new JPopupMenu();
+
+                // Open in editor (files only)
+                if (!isDir) {
+                    JMenuItem open = new JMenuItem("Open");
+                    open.addActionListener(ev -> gui.openFileFromDrop(file));
+                    popup.add(open);
+                    popup.addSeparator();
+                }
+
+                // Rename
+                JMenuItem rename = new JMenuItem("Rename...");
+                rename.addActionListener(ev -> renameFile(file));
+                popup.add(rename);
+
+                // Delete
+                JMenuItem delete = new JMenuItem("Delete");
+                delete.addActionListener(ev -> deleteFile(file));
+                popup.add(delete);
+
+                popup.addSeparator();
+
+                // New File / New Folder (only when right-clicking a folder)
+                if (isDir) {
+                    JMenuItem newFile = new JMenuItem("New File");
+                    newFile.addActionListener(ev -> createNewFile(file));
+                    popup.add(newFile);
+
+                    JMenuItem newFolder = new JMenuItem("New Folder");
+                    newFolder.addActionListener(ev -> createNewFolder(file));
+                    popup.add(newFolder);
+
+                    popup.addSeparator();
+
+                    JMenuItem openExplorer = new JMenuItem("Open Folder...");
+                    openExplorer.addActionListener(ev -> openInExplorer(file));
+                    popup.add(openExplorer);
+                } else {
+                    // For files: open the containing folder
+                    JMenuItem openContaining = new JMenuItem("Open Containing Folder");
+                    openContaining.addActionListener(ev -> openInExplorer(file.getParentFile()));
+                    popup.add(openContaining);
+                }
+
+                popup.show(tree, e.getX(), e.getY());
+            }
+        });
+    }
+    
+    private void renameFile(File file) {
+        String newName = JOptionPane.showInputDialog(this, "Rename to:", file.getName());
+        if (newName == null || newName.isBlank() || newName.equals(file.getName())) return;
+
+        File dest = new File(file.getParentFile(), newName);
+        if (dest.exists()) {
+            JOptionPane.showMessageDialog(this, "A file with that name already exists.");
+            return;
+        }
+        if (file.renameTo(dest)) {
+            refresh();
+        } else {
+            JOptionPane.showMessageDialog(this, "Could not rename.");
+        }
+    }
+
+    private void deleteFile(File file) {
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Delete \"" + file.getName() + "\"?",
+                "Confirm Delete",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        try {
+            if (file.isDirectory()) {
+                deleteRecursive(file.toPath());
+            } else {
+                Files.delete(file.toPath());
+            }
+            refresh();
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Could not delete: " + ex.getMessage());
+        }
+    }
+
+    private void deleteRecursive(Path path) throws IOException {
+        if (Files.isDirectory(path)) {
+            try (var stream = Files.list(path)) {
+                for (Path child : stream.toList()) {
+                    deleteRecursive(child);
+                }
+            }
+        }
+        Files.delete(path);
+    }
+
+    private void createNewFile(File parentDir) {
+        String name = JOptionPane.showInputDialog(this, "New file name:");
+        if (name == null || name.isBlank()) return;
+
+        File f = new File(parentDir, name);
+        try {
+            if (f.createNewFile()) {
+                refresh();
+                gui.openFileFromDrop(f);
+            } else {
+                JOptionPane.showMessageDialog(this, "File already exists.");
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Could not create file.");
+        }
+    }
+
+    private void createNewFolder(File parentDir) {
+        String name = JOptionPane.showInputDialog(this, "New folder name:");
+        if (name == null || name.isBlank()) return;
+
+        File f = new File(parentDir, name);
+        if (f.mkdir()) {
+            refresh();
+        } else {
+            JOptionPane.showMessageDialog(this, "Could not create folder.");
+        }
+    }
+
+    private void openInExplorer(File folder) {
+        if (folder == null || !folder.isDirectory()) return;
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(folder);
+            }
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(this, "Could not open folder in explorer.");
         }
     }
 }

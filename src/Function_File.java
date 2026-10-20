@@ -68,10 +68,50 @@ public class Function_File {
 
 			if (result == JOptionPane.YES_OPTION) {
 				gui.window.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+				if (gui.idleDVD != null) {
+				    gui.idleDVD.shutdown();
+				}
+
+				// 1. Close ONLY the current window
 				gui.window.dispose();
+
+				// 2. Check if any other windows are still open/visible
+				boolean otherWindowsOpen = false;
+				for (java.awt.Window w : java.awt.Window.getWindows()) {
+				    if (w != gui.window && w.isDisplayable() && w.isVisible()) {
+				        otherWindowsOpen = true;
+				        break; // Found another active window, no need to keep checking
+				    }
+				}
+
+				// 3. Fully exit the application ONLY if this was the last window
+				if (!otherWindowsOpen) {
+				    System.exit(0);
+				}
 			}
 		} else {
+
+			if (gui.idleDVD != null) {
+			    gui.idleDVD.shutdown();
+			}
+
+			// 1. Close ONLY the current window
 			gui.window.dispose();
+
+			// 2. Check if any other windows are still open/visible
+			boolean otherWindowsOpen = false;
+			for (java.awt.Window w : java.awt.Window.getWindows()) {
+			    if (w != gui.window && w.isDisplayable() && w.isVisible()) {
+			        otherWindowsOpen = true;
+			        break; // Found another active window, no need to keep checking
+			    }
+			}
+
+			// 3. Fully exit the application ONLY if this was the last window
+			if (!otherWindowsOpen) {
+			    System.exit(0);
+			}
 		}
 	}
 
@@ -90,6 +130,30 @@ public class Function_File {
 				if (fd.getFile() != null) {
 					fileName = fd.getFile();
 					fileAddress = fd.getDirectory();
+					
+					File selected = new File(fileAddress, fileName);
+					
+					// Images open in their own window
+				    if (gui.isImageFile(selected)) {
+				        gui.imgViewer.openImageInNewFrame(selected);   // make sure this method is public in GUI
+				        return;
+				    }
+				    
+				    if (gui.isUnsupportedMedia(selected)) {
+				        int choice = JOptionPane.showOptionDialog(
+				            gui.window,
+				            "The file is not displayed in the text editor because it is either binary or uses an unsupported text encoding.\n\n" + selected.getName(),
+				            "Unsupported File",
+				            JOptionPane.YES_NO_OPTION,
+				            JOptionPane.WARNING_MESSAGE,
+				            null,
+				            new String[]{"Open Anyway", "Cancel"},
+				            "Cancel"
+				        );
+				        if (choice != JOptionPane.YES_OPTION) {
+				            return;
+				        }
+				    }
 
 					gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
 
@@ -127,6 +191,30 @@ public class Function_File {
 			if (fd.getFile() != null) {
 				fileName = fd.getFile();
 				fileAddress = fd.getDirectory();
+				
+				File selected = new File(fileAddress, fileName);
+				
+				if (gui.isUnsupportedMedia(selected)) {
+				    int choice = JOptionPane.showOptionDialog(
+				        gui.window,
+				        "The file is not displayed in the text editor because it is either binary or\n uses an unsupported text encoding.\n\n" + selected.getName(),
+				        "Unsupported File",
+				        JOptionPane.YES_NO_OPTION,
+				        JOptionPane.WARNING_MESSAGE,
+				        null,
+				        new String[]{"Open Anyway", "Cancel"},
+				        "Cancel"
+				    );
+				    if (choice != JOptionPane.YES_OPTION) {
+				        return;
+				    }
+				}
+				
+				// Images open in their own window
+			    if (gui.isImageFile(selected)) {
+			        gui.imgViewer.openImageInNewFrame(selected);   // make sure this method is public in GUI
+			        return;
+			    }
 
 				gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
 
@@ -174,107 +262,66 @@ public class Function_File {
 	}
 
 	public void openDropped(File fileToOpen) {
-		if (fileToOpen == null || !fileToOpen.isFile()) {
-			return;
+		
+		if (gui.isUnsupportedMedia(fileToOpen)) {
+		    int choice = JOptionPane.showOptionDialog(
+		        gui.window,
+		        "The file is not displayed in the text editor because it is either binary or\n uses an unsupported text encoding.\n\n" + fileToOpen.getName(),
+		        "Unsupported File",
+		        JOptionPane.YES_NO_OPTION,
+		        JOptionPane.WARNING_MESSAGE,
+		        null,
+		        new String[]{"Open Anyway", "Cancel"},
+		        "Cancel"
+		    );
+		    if (choice != JOptionPane.YES_OPTION) {
+		        return;
+		    }
 		}
+		
+		try {
 
-		if (gui.fileSaved == true) {
+			BufferedReader br = new BufferedReader(new FileReader(fileAddress + fileName));
 
-			try {
+			gui.textArea.setText("");
 
-				BufferedReader br = new BufferedReader(new FileReader(fileAddress + fileName));
+			String line = null;
 
-				gui.textArea.setText("");
-
-				String line = null;
-
-				while ((line = br.readLine()) != null) {
-					gui.textArea.append(line + "\n");
-				}
-				br.close();
-
-				gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
-				gui.docType.loadDocumentType(fileName);
-
-				gui.fileSaved = true;
-
-			} catch (Exception e) {
-				e.printStackTrace();
+			while ((line = br.readLine()) != null) {
+				gui.textArea.append(line + "\n");
 			}
-			try {
-				// Example: read text and put into the editor
-				// Adapt to whatever you already do in open()
-				String content = new String(java.nio.file.Files.readAllBytes(fileToOpen.toPath()),
-						java.nio.charset.StandardCharsets.UTF_8);
-				gui.textArea.setText(content);
-				gui.textArea.setCaretPosition(0);
+			br.close();
 
-				// Track path / title / saved state (match your existing open() logic)
-				// e.g. gui.currentFile = fileToOpen;
-				gui.fileSaved = true;
-				gui.window.setTitle(gui.appName + " - " + fileToOpen.getName());
+			gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
+			gui.docType.loadDocumentType(fileName);
 
-				// Syntax by extension
-				gui.docType.loadDocumentType(fileToOpen.getName()); // if you have this
+			gui.fileSaved = true;
 
-				fileName = fileToOpen.getName();
-				fileAddress = fileToOpen.getParent() + "/";
-			} catch (Exception e) {
-				e.printStackTrace();
-				JOptionPane.showMessageDialog(gui.window, "Failed to open:\n" + fileToOpen.getAbsolutePath(),
-						"Open Error", JOptionPane.ERROR_MESSAGE);
-			}
-		} else {
-			int result = JOptionPane.showConfirmDialog(ConfirmExitFrame,
-					"Are you sure you want to open a file with unsaved changes?",
-					"Overide Unsaved Changes Confirmation", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		try {
+			// Example: read text and put into the editor
+			// Adapt to whatever you already do in open()
+			String content = new String(java.nio.file.Files.readAllBytes(fileToOpen.toPath()),
+					java.nio.charset.StandardCharsets.UTF_8);
+			gui.textArea.setText(content);
+			gui.textArea.setCaretPosition(0);
 
-			if (result == JOptionPane.YES_OPTION) {
-				try {
+			// Track path / title / saved state (match your existing open() logic)
+			// e.g. gui.currentFile = fileToOpen;
+			gui.fileSaved = true;
+			gui.window.setTitle(gui.appName + " - " + fileToOpen.getName());
 
-					BufferedReader br = new BufferedReader(new FileReader(fileAddress + fileName));
+			// Syntax by extension
+			gui.docType.loadDocumentType(fileToOpen.getName()); // if you have this
 
-					gui.textArea.setText("");
-
-					String line = null;
-
-					while ((line = br.readLine()) != null) {
-						gui.textArea.append(line + "\n");
-					}
-					br.close();
-
-					gui.window.setTitle(gui.defaultAppTitle + " - " + fileName);
-					gui.docType.loadDocumentType(fileName);
-
-					gui.fileSaved = true;
-
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				try {
-					// Example: read text and put into the editor
-					// Adapt to whatever you already do in open()
-					String content = new String(java.nio.file.Files.readAllBytes(fileToOpen.toPath()),
-							java.nio.charset.StandardCharsets.UTF_8);
-					gui.textArea.setText(content);
-					gui.textArea.setCaretPosition(0);
-
-					// Track path / title / saved state (match your existing open() logic)
-					// e.g. gui.currentFile = fileToOpen;
-					gui.fileSaved = true;
-					gui.window.setTitle(gui.appName + " - " + fileToOpen.getName());
-
-					// Syntax by extension
-					gui.docType.loadDocumentType(fileToOpen.getName()); // if you have this
-
-					fileName = fileToOpen.getName();
-					fileAddress = fileToOpen.getParent() + "/";
-				} catch (Exception e) {
-					e.printStackTrace();
-					JOptionPane.showMessageDialog(gui.window, "Failed to open:\n" + fileToOpen.getAbsolutePath(),
-							"Open Error", JOptionPane.ERROR_MESSAGE);
-				}
-			}
+			fileName = fileToOpen.getName();
+			fileAddress = fileToOpen.getParent() + "/";
+		} catch (Exception e) {
+			e.printStackTrace();
+			JOptionPane.showMessageDialog(gui.window, "Failed to open:\n" + fileToOpen.getAbsolutePath(),
+					"Open Error", JOptionPane.ERROR_MESSAGE);
 		}
 
 	}
@@ -292,6 +339,11 @@ public class Function_File {
 				gui.docType.loadDocumentType(fileName);
 
 				gui.fileSaved = true;
+				
+				// If this is the config file, reload it
+	            if ("PHNX.txt".equals(fileName)) {
+	                gui.cfg.loadHomeNotesFile();
+	            }
 
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -322,6 +374,11 @@ public class Function_File {
 			gui.docType.loadDocumentType(fileName);
 
 			gui.fileSaved = true;
+			
+			// If this is the config file, reload it
+            if ("PHNX.txt".equals(fileName)) {
+                gui.cfg.loadHomeNotesFile();
+            }
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -338,9 +395,22 @@ public class Function_File {
 
 			if (result == JOptionPane.YES_OPTION) {
 				gui.window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+				if (gui.idleDVD != null) {
+					gui.idleDVD.shutdown();
+		        }
+				gui.window.dispose();
+				for (java.awt.Window w : java.awt.Window.getWindows()) {
+			        if (w != gui.window && w.isDisplayable()) {
+			            w.dispose();
+			        }
+			    }
 				System.exit(0);
 			}
 		} else {
+			if (gui.idleDVD != null) {
+				gui.idleDVD.shutdown();
+	        }
+			gui.window.dispose();
 			System.exit(0);
 		}
 	}

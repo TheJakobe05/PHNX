@@ -12,21 +12,18 @@ public class Function_View {
 	
 	public void minimap() {
 		gui.minimap.setVisible(!gui.iMinimap.isSelected());
+		gui.cfg.saveConfig();
 	}
 	
 	public void statusbar() {
 		gui.statusPanel.setVisible(!gui.iStatusBar.isSelected());
+		gui.cfg.saveConfig();
 	}
 	
 	public void wordWrap() {
-		if(isWrapped == false) {
-			isWrapped = true;
-			gui.textArea.setLineWrap(true);
-			gui.textArea.setWrapStyleWord(true);
-		} else {
-			isWrapped = false;
-			gui.textArea.setLineWrap(false);
-			gui.textArea.setWrapStyleWord(false);
-		}
+	    boolean wrap = gui.iWordWrap.isSelected();
+	    gui.textArea.setLineWrap(wrap);
+	    gui.textArea.setWrapStyleWord(wrap);
+		gui.cfg.saveConfig();
 	}
 }
