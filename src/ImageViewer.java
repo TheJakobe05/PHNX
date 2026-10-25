@@ -119,17 +119,17 @@ public class ImageViewer {
 	        };
 	        
 	        
-	        zoomInBtn.addActionListener(e -> {
+	        zoomInBtn.addActionListener(_ -> {
 	            zoom[0] = Math.min(zoom[0] * 1.25, 8.0);
 	            updateZoom.run();
 	        });
 
-	        zoomOutBtn.addActionListener(e -> {
+	        zoomOutBtn.addActionListener(_ -> {
 	            zoom[0] = Math.max(zoom[0] / 1.25, 0.1);
 	            updateZoom.run();
 	        });
 
-	        resetBtn.addActionListener(e -> {
+	        resetBtn.addActionListener(_ -> {
 	            zoom[0] = 1.0;
 	            updateZoom.run();
 	        });
@@ -147,7 +147,7 @@ public class ImageViewer {
 	        
 	        fitToWindow.run();
 	        
-	        fitBtn.addActionListener(e -> fitToWindow.run());
+	        fitBtn.addActionListener(_ -> fitToWindow.run());
 
 	        // Mouse wheel zoom (optional but nice)
 	        imageLabel.addMouseWheelListener(e -> {
@@ -326,15 +326,15 @@ public class ImageViewer {
 	        gifLabel.repaint();
 	    };
 
-	    zoomInBtn.addActionListener(e -> {
+	    zoomInBtn.addActionListener(_ -> {
 	        zoom[0] = Math.min(zoom[0] * 1.25, 8.0);
 	        updateZoom.run();
 	    });
-	    zoomOutBtn.addActionListener(e -> {
+	    zoomOutBtn.addActionListener(_ -> {
 	        zoom[0] = Math.max(zoom[0] / 1.25, 0.1);
 	        updateZoom.run();
 	    });
-	    resetBtn.addActionListener(e -> {
+	    resetBtn.addActionListener(_ -> {
 	        zoom[0] = 1.0;
 	        updateZoom.run();
 	    });
@@ -348,7 +348,7 @@ public class ImageViewer {
 	            updateZoom.run();
 	        }
 	    };
-	    fitBtn.addActionListener(e -> fitToWindow.run());
+	    fitBtn.addActionListener(_ -> fitToWindow.run());
 
 	    gifLabel.addMouseWheelListener(e -> {
 	        if (!e.isControlDown()) return;

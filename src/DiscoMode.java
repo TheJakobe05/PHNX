@@ -10,7 +10,8 @@ public class DiscoMode {
         this.gui = gui;
     }
 
-    public void start(int durationMs) {
+    @SuppressWarnings("unused")
+	public void start(int durationMs) {
         if (timer != null && timer.isRunning()) return;
 
         originalTheme = gui.pref.selectedTheme;

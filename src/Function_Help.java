@@ -30,6 +30,7 @@ public class Function_Help {
         });
 	}
 	
+	@SuppressWarnings("static-access")
 	public void showModalPopup(JFrame window) {
 	    JDialog popup = new JDialog(window, "About " + gui.appName, Dialog.ModalityType.APPLICATION_MODAL);
 	    popup.setSize(400, 250);
@@ -68,7 +69,9 @@ public class Function_Help {
 	        case 4: popup.getContentPane().setBackground(Color.decode("#6B8F4E")); break;
 	        case 5: popup.getContentPane().setBackground(Color.decode("#F5E9C8")); break;
 	        case 67: popup.getContentPane().setBackground(Color.decode("#FFB000")); break;
+	        case 666: popup.getContentPane().setBackground(Color.decode("#0C0000")); break;
 	        case 0: popup.getContentPane().setBackground(gui.pref.parseColor(gui.pref.CTtextAreaBackground)); break;
+	        default: if(selectedTheme > 1000) popup.getContentPane().setBackground(gui.pref.parseColor("#1A1A1A")); break;
 	    }
 
 	    popup.setLayout(new BorderLayout(10, 10));

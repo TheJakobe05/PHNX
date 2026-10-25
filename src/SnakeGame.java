@@ -5,7 +5,12 @@ import java.util.LinkedList;
 import java.util.Random;
 
 public class SnakeGame extends JFrame {
-    private static final int TILE = 20;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8096874771327847013L;
+	
+	private static final int TILE = 20;
     private static final int WIDTH = 30;
     private static final int HEIGHT = 20;
 
@@ -16,7 +21,8 @@ public class SnakeGame extends JFrame {
     private final Timer timer;
     private final Random rand = new Random();
 
-    public SnakeGame() {
+    @SuppressWarnings("unused")
+	public SnakeGame() {
         setTitle("PHNX - Snake");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setResizable(false);

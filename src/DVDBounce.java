@@ -4,7 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DVDBounce extends JWindow {
-    private final List<Image> icons = new ArrayList<>();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -8184596954290297278L;
+	
+	private final List<Image> icons = new ArrayList<>();
     private int currentIcon = 0;
     private int x = 200, y = 200;
     private int dx = 3, dy = 2;
@@ -67,7 +72,8 @@ public class DVDBounce extends JWindow {
         setContentPane(canvas);
     }
 
-    public void start() {
+    @SuppressWarnings("unused")
+	public void start() {
         if (timer != null && timer.isRunning()) return;
 
         setVisible(true);

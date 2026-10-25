@@ -44,6 +44,7 @@ public class TextArea {
         
         // 3. Configure the syntax highlighting style (e.g., Java)
 		gui.textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+		gui.textArea.setRoundedSelectionEdges(true);
         
         // 4. Enable modern IDE features like code folding
 		gui.textArea.setCodeFoldingEnabled(true);
@@ -53,6 +54,9 @@ public class TextArea {
 		gui.textArea.setCloseCurlyBraces(true); 
 		gui.textArea.setInsertPairedCharacters(true);
 		gui.textArea.setCloseMarkupTags(true);
+		gui.textArea.setPaintTabLines(true);
+		gui.textArea.setAnimateBracketMatching(true);
+		gui.textArea.setHyperlinksEnabled(true);
 		
 		gui.textArea.addKeyListener(gui.kHandler);
 		

@@ -258,7 +258,17 @@ public class Function_File {
 			gui.fileTree.setRootFolder(chooser.getSelectedFile());
 
 			gui.fileTree.setVisible(true);
+			
+			gui.pref.openFolderPath = chooser.getSelectedFile().getAbsolutePath();
+			gui.cfg.saveConfig();
 		}
+	}
+	
+	public void closeFolder() {
+		gui.fileTree.setVisible(false);
+		
+		gui.pref.openFolder = 0;
+		gui.cfg.saveConfig();
 	}
 
 	public void openDropped(File fileToOpen) {
@@ -341,7 +351,7 @@ public class Function_File {
 				gui.fileSaved = true;
 				
 				// If this is the config file, reload it
-	            if ("PHNX.txt".equals(fileName)) {
+	            if ("config.txt".equals(fileName)) {
 	                gui.cfg.loadHomeNotesFile();
 	            }
 
@@ -376,7 +386,7 @@ public class Function_File {
 			gui.fileSaved = true;
 			
 			// If this is the config file, reload it
-            if ("PHNX.txt".equals(fileName)) {
+            if ("config.txt".equals(fileName)) {
                 gui.cfg.loadHomeNotesFile();
             }
 

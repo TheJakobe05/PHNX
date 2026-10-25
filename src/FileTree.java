@@ -153,6 +153,9 @@ public class FileTree extends JPanel {
         tree.setRootVisible(true);
         
         gui.fileTree.setVisible(true);
+        
+		gui.pref.openFolderPath = folder.getAbsolutePath();
+		gui.cfg.saveConfig();
     }
 
     private void loadChildren(DefaultMutableTreeNode parent) {
@@ -194,6 +197,11 @@ public class FileTree extends JPanel {
     }
     
     public class FileTreeCellRenderer extends DefaultTreeCellRenderer {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3486184062376552910L;
+		
 		// Folders
         private final Icon folderIcon;
         private final Icon openFolderIcon;
@@ -403,6 +411,7 @@ public class FileTree extends JPanel {
             if (name.endsWith(".docx") || name.endsWith(".odt")) return docIcon;
             if (name.endsWith(".xlsx") || name.endsWith(".ods")) return xlsIcon;
             if (name.endsWith(".pptx") || name.endsWith(".odp")) return pptIcon;
+            if (name.endsWith(".log")) return logIcon;
 
             // zips
             if (name.endsWith(".zip") || name.endsWith(".zipx")) return zipIcon;
@@ -425,7 +434,7 @@ public class FileTree extends JPanel {
         if (refreshTimer != null) {
             refreshTimer.stop();
         }
-        refreshTimer = new Timer(intervalMs, e -> refresh());
+        refreshTimer = new Timer(intervalMs, _ -> refresh());
         refreshTimer.setRepeats(true);
         refreshTimer.start();
     }
@@ -627,19 +636,19 @@ public class FileTree extends JPanel {
                 // Open in editor (files only)
                 if (!isDir) {
                     JMenuItem open = new JMenuItem("Open");
-                    open.addActionListener(ev -> gui.openFileFromDrop(file));
+                    open.addActionListener(_ -> gui.openFileFromDrop(file));
                     popup.add(open);
                     popup.addSeparator();
                 }
 
                 // Rename
                 JMenuItem rename = new JMenuItem("Rename...");
-                rename.addActionListener(ev -> renameFile(file));
+                rename.addActionListener(_ -> renameFile(file));
                 popup.add(rename);
 
                 // Delete
                 JMenuItem delete = new JMenuItem("Delete");
-                delete.addActionListener(ev -> deleteFile(file));
+                delete.addActionListener(_ -> deleteFile(file));
                 popup.add(delete);
 
                 popup.addSeparator();
@@ -647,22 +656,22 @@ public class FileTree extends JPanel {
                 // New File / New Folder (only when right-clicking a folder)
                 if (isDir) {
                     JMenuItem newFile = new JMenuItem("New File");
-                    newFile.addActionListener(ev -> createNewFile(file));
+                    newFile.addActionListener(_ -> createNewFile(file));
                     popup.add(newFile);
 
                     JMenuItem newFolder = new JMenuItem("New Folder");
-                    newFolder.addActionListener(ev -> createNewFolder(file));
+                    newFolder.addActionListener(_ -> createNewFolder(file));
                     popup.add(newFolder);
 
                     popup.addSeparator();
 
                     JMenuItem openExplorer = new JMenuItem("Open Folder...");
-                    openExplorer.addActionListener(ev -> openInExplorer(file));
+                    openExplorer.addActionListener(_ -> openInExplorer(file));
                     popup.add(openExplorer);
                 } else {
                     // For files: open the containing folder
                     JMenuItem openContaining = new JMenuItem("Open Containing Folder");
-                    openContaining.addActionListener(ev -> openInExplorer(file.getParentFile()));
+                    openContaining.addActionListener(_ -> openInExplorer(file.getParentFile()));
                     popup.add(openContaining);
                 }
 

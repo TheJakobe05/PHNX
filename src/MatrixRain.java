@@ -4,7 +4,12 @@ import java.awt.event.ActionEvent;
 import java.util.Random;
 
 public class MatrixRain extends JWindow {
-    private final Random rand = new Random();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4276002547648549179L;
+	
+	private final Random rand = new Random();
     private final char[] glyphs = (
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
         "abcdefghijklmnopqrstuvwxyz" +
@@ -83,14 +88,15 @@ public class MatrixRain extends JWindow {
         canvas.setOpaque(false);
         setContentPane(canvas);
 
-        timer = new Timer(33, (ActionEvent e) -> canvas.repaint());
+        timer = new Timer(33, (@SuppressWarnings("unused") ActionEvent e) -> canvas.repaint());
     }
 
     public void play(int durationMs) {
         setVisible(true);
         timer.start();
 
-        Timer stopper = new Timer(durationMs, e -> {
+        @SuppressWarnings("unused")
+		Timer stopper = new Timer(durationMs, e -> {
             timer.stop();
             setVisible(false);
             dispose();

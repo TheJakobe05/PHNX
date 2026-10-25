@@ -33,7 +33,8 @@ public class MortalCombatFatality {
         });
     }
 
-    private void trigger() {
+    @SuppressWarnings("unused")
+	private void trigger() {
         try {
             int caret = gui.textArea.getCaretPosition();
             int line = gui.textArea.getLineOfOffset(caret);

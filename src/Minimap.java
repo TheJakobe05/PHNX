@@ -6,7 +6,12 @@ import javax.swing.text.BadLocationException;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rtextarea.RTextScrollPane;
 public class Minimap extends JPanel {
-    private final RSyntaxTextArea textArea;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 146179979700393036L;
+	
+	private final RSyntaxTextArea textArea;
     private final RTextScrollPane scrollPane;
     private final JScrollBar verticalBar;
     private static final int MINIMAP_WIDTH = 120;
@@ -14,7 +19,8 @@ public class Minimap extends JPanel {
     private static Color VIEWPORT_BORDER = new Color(201, 123, 99);
     private static final Color BG = new Color(245, 245, 245);
     private static final Color TEXT_COLOR = new Color(120, 120, 120);
-    public Minimap(RSyntaxTextArea textArea, RTextScrollPane scrollPane) {
+    @SuppressWarnings("unused")
+	public Minimap(RSyntaxTextArea textArea, RTextScrollPane scrollPane) {
         this.textArea = textArea;
         this.scrollPane = scrollPane;
         this.verticalBar = scrollPane.getVerticalScrollBar();
@@ -122,7 +128,8 @@ public class Minimap extends JPanel {
         }
         g2.dispose();
     }
-    private void drawLinePreview(Graphics2D g2, int line, int y, int maxWidth) {
+    @SuppressWarnings("unused")
+	private void drawLinePreview(Graphics2D g2, int line, int y, int maxWidth) {
         try {
             int start = textArea.getLineStartOffset(line);
             int end = textArea.getLineEndOffset(line);
@@ -136,7 +143,8 @@ public class Minimap extends JPanel {
         }
     }
     
-    public void setViewportColors(Color fill, Color border) {
+    @SuppressWarnings("static-access")
+	public void setViewportColors(Color fill, Color border) {
         this.VIEWPORT_COLOR = fill;
         this.VIEWPORT_BORDER = border;
         repaint();

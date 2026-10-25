@@ -62,13 +62,13 @@ public class GUI {
 	JMenuBar menuBar;
 	JMenu menuFile, menuEdit, menuView, menuPreferences, menuHelp;
 //	File Menu
-	JMenuItem iNew, iNewWindow, iCloseWindow, iOpen, iOpenFolder, iSave, iSaveAs, iExit;
+	JMenuItem iNew, iNewWindow, iCloseWindow, iOpen, iOpenFolder, iCloseFolder, iSave, iSaveAs, iExit;
 //	Edit Menu
 	JMenuItem iUndo, iRedo, iCut, iCopy, iPaste, iDelete, iSelectAll, iFind, iReplace, iGoTo;
 //	View Menu
 	JCheckBoxMenuItem iMinimap, iStatusBar, iWordWrap;
 //	Preferences Menu
-	JMenu menuTheme, menuThemeCustom;
+	JMenu menuTheme, menuThemeCustom, menuThemeInstalled;
 	JCheckBoxMenuItem iTheme1, iTheme2, iTheme3, iTheme4, iTheme5, iThemeCustom;
 	JMenuItem iThemeConfig;
 	JMenu menuFont;
@@ -106,10 +106,10 @@ public class GUI {
 	UndoManager um = new UndoManager();
 
 	String appName = "PHNX";
-	String appVersion = "0.10.0 (alpha)";
+	String appVersion = "0.11.0 (alpha)";
 	String defaultAppTitle = appName;
-	int WIDTH = 800;
-	int HEIGHT = 650;
+	int WIDTH = 1200;
+	int HEIGHT = 800;
 
 	boolean fileSaved = true;
 
@@ -126,7 +126,6 @@ public class GUI {
 
 		// Files passed by the OS ("Open with", double-click if associated, etc.)
 		if (args != null && args.length > 0) {
-			boolean first = true;
 			for (String path : args) {
 				if (path == null || path.isBlank())
 					continue;
@@ -192,7 +191,7 @@ public class GUI {
 
 		window.add(splitPane, BorderLayout.CENTER);
 
-		splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, e -> {
+		splitPane.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, _ -> {
 			int loc = splitPane.getDividerLocation();
 			if (loc < 120) {
 				splitPane.setDividerLocation(120);

@@ -1,17 +1,27 @@
 
+import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 public class MenuBar implements ActionListener {
@@ -50,6 +60,8 @@ public void createMenuBar() {
 	public void createFileMenu() {
 		ImageIcon newFileIcon = new ImageIcon(getClass().getClassLoader().getResource("newfile.png"));
 		ImageIcon openFileIcon = new ImageIcon(getClass().getClassLoader().getResource("openfile.png"));
+		ImageIcon openFolderIcon = new ImageIcon(getClass().getClassLoader().getResource("addfolder.png"));
+		ImageIcon closeFolderIcon = new ImageIcon(getClass().getClassLoader().getResource("removefolder.png"));
 		ImageIcon saveIcon = new ImageIcon(getClass().getClassLoader().getResource("save.png"));
 		ImageIcon saveAsIcon = new ImageIcon(getClass().getClassLoader().getResource("saveas.png"));
 		ImageIcon newWindowIcon = new ImageIcon(getClass().getClassLoader().getResource("newwindow.png"));
@@ -73,11 +85,18 @@ public void createMenuBar() {
 		gui.menuFile.add(gui.iOpen);
 		
 		gui.iOpenFolder = new JMenuItem("Open Folder...");
-		gui.iOpenFolder.setIcon(openFileIcon);
+		gui.iOpenFolder.setIcon(openFolderIcon);
 		gui.iOpenFolder.setMargin(new Insets(2, -20, 2, 2));
 		gui.iOpenFolder.addActionListener(this);
 		gui.iOpenFolder.setActionCommand("OpenFolder");
 		gui.menuFile.add(gui.iOpenFolder);
+		
+		gui.iCloseFolder = new JMenuItem("Close Folder");
+		gui.iCloseFolder.setIcon(closeFolderIcon);
+		gui.iCloseFolder.setMargin(new Insets(2, -20, 2, 2));
+		gui.iCloseFolder.addActionListener(this);
+		gui.iCloseFolder.setActionCommand("CloseFolder");
+		gui.menuFile.add(gui.iCloseFolder);
 		
 		gui.iSave = new JMenuItem("Save");
 		gui.iSave.setIcon(saveIcon);
@@ -276,6 +295,12 @@ public void createMenuBar() {
 		gui.iTheme5.setActionCommand("Theme5");
 		gui.menuTheme.add(gui.iTheme5);
 		
+		gui.menuThemeInstalled = new JMenu("Installed Themes...");
+		gui.menuTheme.setMargin(new Insets(2, -20, 2, 2));
+		gui.menuTheme.add(gui.menuThemeInstalled);
+		
+		loadInstalledThemes();
+		
 		gui.menuThemeCustom = new JMenu("Customize...");
 		gui.menuTheme.add(gui.menuThemeCustom);
 		
@@ -379,6 +404,115 @@ public void createMenuBar() {
 		gui.menuHelp.add(gui.iSponsor);
 	}
 	
+	public void loadInstalledThemes() {
+		 // 1. Get the user's home directory dynamically
+        String userHome = System.getProperty("user.home");
+        
+        // 2. Resolve the target path: ~/PHNX/installed-themes
+        Path targetDir = Paths.get(userHome, "PHNX", "installed-themes");
+
+        // 3. Verify the directory exists before looping
+        if (!Files.exists(targetDir) || !Files.isDirectory(targetDir)) {
+            gui.menuBar.remove(gui.menuThemeInstalled);
+            
+            try {
+				Files.createDirectories(Paths.get(userHome, "PHNX", "installed-themes"));
+				gui.menuBar.remove(gui.menuThemeInstalled);
+            } catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+            return;
+        }
+        
+        try (var stream = Files.list(targetDir)) {
+            long installedThemeCount = stream
+                .filter(Files::isDirectory)
+                .count();
+            
+            if(installedThemeCount < 1) {
+            	gui.menuThemeInstalled.setVisible(false);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // 4. Use a try-with-resources stream to safely list subdirectories
+        try (Stream<Path> stream = Files.list(targetDir)) {
+            for (Path subPath : (Iterable<Path>) stream::iterator) {
+                if (Files.isDirectory(subPath)) {
+                    // 1. Get the theme name (e.g., "creme-brulee")
+                    String themeName = subPath.getFileName().toString();
+                    
+                    // 2. Instantiate a fresh menu item for this unique folder
+                    JCheckBoxMenuItem themeItem = new JCheckBoxMenuItem(themeName);
+                    
+                    // 3. Attach the ActionListener using a lambda expression
+                    themeItem.addActionListener(e -> {
+                    	
+                    	JCheckBoxMenuItem clickedItem = (JCheckBoxMenuItem) e.getSource();
+                    	
+                    	JMenu parentMenu = (JMenu) ((javax.swing.JPopupMenu) clickedItem.getParent()).getInvoker();
+                    	
+                        for (Component comp : parentMenu.getMenuComponents()) {
+                            if (comp instanceof JCheckBoxMenuItem) {
+                                JCheckBoxMenuItem item = (JCheckBoxMenuItem) comp;
+                                item.setSelected(false);
+                            }
+                        }
+                        
+                        clickedItem.setSelected(true);
+                    	
+                    	Path configFilePath = subPath.resolve("config.txt");
+                        
+                        if (Files.exists(configFilePath)) {
+                            try {
+                                // 3. Read and parse lines into a temporary configuration map
+                                Map<String, String> configMap = new HashMap<>();
+                                List<String> lines = Files.readAllLines(configFilePath);
+                                
+                                for (String line : lines) {
+                                    line = line.trim();
+                                    if (line.isEmpty() || line.startsWith("#")) {
+                                        continue;
+                                    }
+
+                                    String[] parts = line.split("=", 2);
+                                    if (parts.length == 2) {
+                                        String key = parts[0].trim();
+                                        // Handle formatting quirks and remove accidental wrapper quotes
+                                        String value = parts[1].trim().replace("\"", ""); 
+                                        configMap.put(key, value);
+                                    }
+                                }
+
+                                // 4. Apply your parsed custom configuration parameters to the active app frame
+                                gui.pref.applyInstalledTheme(gui, configMap, themeName);
+                                
+                                System.out.println("Custom theme [" + themeName + "] applied successfully.");
+
+                            } catch (IOException ex) {
+                                JOptionPane.showMessageDialog(gui.window,
+                                        "Could not read config file:\n" + configFilePath.toAbsolutePath(), 
+                                        "Theme Error", JOptionPane.ERROR_MESSAGE);
+                            }
+                        } else {
+                            JOptionPane.showMessageDialog(gui.window,
+                                    "Missing config.txt inside folder:\n" + subPath.toAbsolutePath(), 
+                                    "Theme Error", JOptionPane.WARNING_MESSAGE);
+                        }
+
+                    });
+                    
+                    // 4. Add the menu item directly to your JMenu component
+                    gui.menuThemeInstalled.add(themeItem);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Failed to read theme folder: " + e.getMessage());
+        }
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -391,6 +525,7 @@ public void createMenuBar() {
 		case "CloseWindow": gui.file.closeWindow(); break;
 		case "Open": gui.file.open(); break;
 		case "OpenFolder": gui.file.openFolder(); break;
+		case "CloseFolder": gui.file.closeFolder(); break;
 		case "Save": gui.file.save(); break;
 		case "SaveAs": gui.file.saveAs(); break;
 		case "Exit": gui.file.exit(); break;

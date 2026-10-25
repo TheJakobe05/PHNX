@@ -1,5 +1,4 @@
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
+
 import javax.swing.Timer;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -15,7 +14,8 @@ public class IdleDVDBounce {
         setup();
     }
 
-    private void setup() {
+    @SuppressWarnings("unused")
+	private void setup() {
         idleTimer = new Timer(300000, e -> {
             stopBounce();
             currentBounce = new DVDBounce(gui.window);

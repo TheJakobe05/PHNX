@@ -16,7 +16,8 @@ public class GravityMode {
         return running;
     }
 
-    public void start() {
+    @SuppressWarnings("unused")
+	public void start() {
         if (running) return;
         running = true;
 

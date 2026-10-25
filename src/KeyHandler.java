@@ -1,10 +1,8 @@
-import java.applet.Applet;
-import java.applet.AudioClip;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.SwingUtilities;
-import javax.swing.text.BadLocationException;
 
 public class KeyHandler implements KeyListener {
 	
@@ -58,6 +56,7 @@ public class KeyHandler implements KeyListener {
 		
 	}
 	
+	@SuppressWarnings("unused")
 	private String typedBuffer = "";
 
 	public void setupDiscoTrigger() {
